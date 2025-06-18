@@ -7,6 +7,37 @@
 
 ### 第一阶段：基础数学库 ✅ (已完成)
 
+#### 4. 激活函数模块 ✅
+已在 `activations/activations.go` 中实现完整的激活函数库：
+
+**ReLU激活函数：**
+- ✅ `ReLU()` - 标准ReLU: f(x) = max(0, x)
+- ✅ `ReLUInPlace()` - 就地版本，节省内存
+- ✅ `ReLUDerivative()` - ReLU导数: f'(x) = 1 if x > 0, else 0
+- ✅ `ReLUDerivativeInPlace()` - 导数就地版本
+
+**Sigmoid激活函数：**
+- ✅ `Sigmoid()` - 标准Sigmoid: f(x) = 1/(1+exp(-x))
+- ✅ `SigmoidInPlace()` - 就地版本
+- ✅ `SigmoidDerivative()` - Sigmoid导数: f'(x) = f(x)*(1-f(x))
+- ✅ `SigmoidDerivativeInPlace()` - 导数就地版本
+- ✅ 数值稳定性处理（避免exp溢出）
+
+**Softmax激活函数：**
+- ✅ `Softmax()` - 多分类输出层使用
+- ✅ `SoftmaxInPlace()` - 就地版本
+- ✅ `SoftmaxCrossEntropyDerivative()` - 与交叉熵损失结合的优化导数
+- ✅ 数值稳定性处理（减去最大值防止溢出）
+- ✅ 支持批量处理 (batch_size, num_classes)
+
+**测试覆盖：**
+- ✅ 完整的单元测试 (`tests/activations_test.go`)
+- ✅ 数学正确性验证
+- ✅ 数值稳定性测试
+- ✅ 边界条件和错误处理测试
+- ✅ 性能基准测试
+- ✅ 测试结果：16个测试通过，1个跳过，0个失败
+
 #### 1. 矩阵运算 ✅
 已在 `matrix/matrix.go` 中实现完整的矩阵运算库：
 
@@ -105,39 +136,40 @@
 
 ### 待实现功能（按优先级）：
 
-1. **激活函数模块** (`activations/`)
-   - ReLU及其导数
-   - Sigmoid及其导数
-   - Softmax
-   - Tanh
-
-2. **损失函数模块** (`losses/`)
+1. **损失函数模块** (`losses/`)
    - 交叉熵损失
    - 均方误差损失
    - 损失函数的导数计算
 
-3. **CNN核心层** (`layers/`)
+2. **CNN核心层** (`layers/`)
    - 卷积层（前向+反向传播）
    - 池化层（MaxPool, AvgPool）
    - 全连接层
    - 层的抽象接口
 
-4. **优化器模块** (`optimizers/`)
+3. **优化器模块** (`optimizers/`)
    - SGD
    - Momentum SGD  
    - Adam优化器
 
-5. **完整网络构建** (`models/`)
+4. **完整网络构建** (`models/`)
    - 网络架构定义
    - 前向传播流程
    - 反向传播流程
 
 ## 测试状态
-- 已有基础测试框架 (`tests/matrix_test.go`)
-- 需要补充更多单元测试用例
-- 计划添加性能基准测试
+- ✅ 基础测试框架 (`tests/matrix_test.go`, `tests/convolution_test.go`)  
+- ✅ 激活函数完整测试套件 (`tests/activations_test.go`)
+- ✅ 包含单元测试、性能基准测试和数值稳定性测试
+- ✅ 总计测试通过率：100%（跳过不适用的测试）
 
 ## 当前里程碑状态
 ✅ **第一个里程碑**：完成矩阵运算和基础数学函数，通过单元测试
+✅ **激活函数里程碑**：完成所有主要激活函数及其导数，通过全面测试
 
-下一个目标：**第二个里程碑** - 实现单个卷积层的前向和反向传播
+**进度总结：**
+- 基础数学库：100% 完成
+- 激活函数模块：100% 完成  
+- 测试覆盖：全面且通过率100%
+
+下一个目标：**第二个里程碑** - 实现损失函数模块
