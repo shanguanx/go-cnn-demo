@@ -36,6 +36,31 @@ func NewMatrixFromData(data []float64, rows, cols int) *Matrix {
 	return m
 }
 
+// NewMatrixFrom2D 使用二维切片创建矩阵
+func NewMatrixFrom2D(data [][]float64) *Matrix {
+	if len(data) == 0 {
+		panic("cannot create matrix from empty 2D slice")
+	}
+	
+	rows := len(data)
+	cols := len(data[0])
+	
+	// 验证所有行的长度一致
+	for i, row := range data {
+		if len(row) != cols {
+			panic(fmt.Sprintf("inconsistent row length at row %d: expected %d, got %d", i, cols, len(row)))
+		}
+	}
+	
+	m := NewMatrix(rows, cols)
+	for i := 0; i < rows; i++ {
+		for j := 0; j < cols; j++ {
+			m.Set(i, j, data[i][j])
+		}
+	}
+	return m
+}
+
 // At 获取矩阵在位置(i,j)的元素值，会检查边界
 func (m *Matrix) At(i, j int) float64 {
 	if i < 0 || i >= m.Rows || j < 0 || j >= m.Cols {
