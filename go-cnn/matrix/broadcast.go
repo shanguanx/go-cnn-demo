@@ -250,6 +250,7 @@ func (m *Matrix) SumAxis(axis int, keepDims bool) *Matrix {
 			result = NewMatrix(1, m.Cols)
 		} else {
 			result = NewMatrix(1, m.Cols)
+			result.Shape = []int{m.Cols}
 		}
 		
 		for j := 0; j < m.Cols; j++ {
@@ -266,6 +267,7 @@ func (m *Matrix) SumAxis(axis int, keepDims bool) *Matrix {
 			result = NewMatrix(m.Rows, 1)
 		} else {
 			result = NewMatrix(m.Rows, 1)
+			result.Shape = []int{m.Rows}
 		}
 		
 		for i := 0; i < m.Rows; i++ {
