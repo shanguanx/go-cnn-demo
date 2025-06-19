@@ -161,6 +161,9 @@ func TestConvolutionalLayerForward(t *testing.T) {
 func TestConvolutionalLayerForwardBatch(t *testing.T) {
 	layer := layers.NewConvolutionalLayer(2, 3, 3, 1, 1)
 
+	// 设置固定权重（用于对拍测试）
+	layer.SetFixedWeights()
+
 	// 设置输入尺寸
 	err := layer.SetInputSize(4, 4)
 	if err != nil {
@@ -169,13 +172,29 @@ func TestConvolutionalLayerForwardBatch(t *testing.T) {
 
 	// 创建批量输入：(batch_size=2, channels*height*width=2*4*4=32)
 	input := matrix.NewMatrix(2, 32)
-	for i := 0; i < 2; i++ {
-		for j := 0; j < 32; j++ {
-			input.Set(i, j, float64(j%10)) // 填充不同的值
-		}
+
+	// 第一个样本：使用递增的值 (0, 1, 2, ..., 31)
+	for j := 0; j < 32; j++ {
+		input.Set(0, j, float64(j))
+	}
+
+	// 第二个样本：使用递减的值 (31, 30, 29, ..., 0)
+	for j := 0; j < 32; j++ {
+		input.Set(1, j, float64(31-j))
 	}
 
 	output, err := layer.Forward(input)
+	t.Log("输入矩阵:")
+	t.Log(input.String())
+	t.Log("输出矩阵:")
+	t.Log(output.String())
+
+	// 打印权重和偏置信息（用于Python对拍）
+	t.Log("权重矩阵:")
+	t.Log(layer.Weights.String())
+	t.Log("偏置向量:")
+	t.Log(layer.Biases.String())
+
 	if err != nil {
 		t.Fatalf("批量前向传播失败：%v", err)
 	}
@@ -187,6 +206,30 @@ func TestConvolutionalLayerForwardBatch(t *testing.T) {
 		t.Errorf("批量输出形状错误：期望 (%d,%d)，实际 (%d,%d)",
 			expectedRows, expectedCols, output.Rows, output.Cols)
 	}
+
+	// 验证两个样本的输出确实不同
+	sample1Output := make([]float64, expectedCols)
+	sample2Output := make([]float64, expectedCols)
+
+	for j := 0; j < expectedCols; j++ {
+		sample1Output[j] = output.At(0, j)
+		sample2Output[j] = output.At(1, j)
+	}
+
+	// 检查两个样本的输出是否不同
+	allSame := true
+	for j := 0; j < expectedCols; j++ {
+		if sample1Output[j] != sample2Output[j] {
+			allSame = false
+			break
+		}
+	}
+
+	if allSame {
+		t.Error("批量处理失败：两个样本的输出完全相同，说明批量处理可能有问题")
+	}
+
+	t.Logf("批量处理验证通过：两个样本的输出不同，说明批量处理正常工作")
 }
 
 // TestConvolutionalLayerBackward 测试反向传播
