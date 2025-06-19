@@ -427,25 +427,61 @@ func TestConvolutionalLayerWeightUpdate(t *testing.T) {
 		t.Fatalf("设置输入尺寸失败：%v", err)
 	}
 
+	// 使用固定权重进行测试
+	layer.SetFixedWeights()
+
 	// 保存原始权重
 	originalWeights := layer.GetWeights()
 	originalBiases := layer.GetBiases()
 
+	t.Log("=== 权重更新测试开始 ===")
+	t.Log("原始权重矩阵:")
+	t.Log(originalWeights.String())
+	t.Log("原始偏置矩阵:")
+	t.Log(originalBiases.String())
+
 	// 创建输入并进行前向和反向传播
 	input := matrix.NewMatrix(1, 9)
+	// 使用更随机的固定值，避免对称性影响
+	inputValues := []float64{0.73, 0.29, 0.85, 0.41, 0.67, 0.93, 0.18, 0.54, 0.76}
 	for i := 0; i < 9; i++ {
-		input.Set(0, i, 1.0)
+		input.Set(0, i, inputValues[i])
 	}
 
-	output, _ := layer.Forward(input)
+	t.Log("输入矩阵:")
+	t.Log(input.String())
+
+	output, err := layer.Forward(input)
+	if err != nil {
+		t.Fatalf("前向传播失败：%v", err)
+	}
+
+	t.Log("前向传播输出矩阵:")
+	t.Log(output.String())
+
 	gradOutput := matrix.NewMatrix(output.Rows, output.Cols)
+	// 使用更随机的梯度值
+	gradValues := []float64{0.31, 0.89, 0.47, 0.62, 0.15, 0.83, 0.39, 0.71, 0.24}
 	for i := 0; i < gradOutput.Rows; i++ {
 		for j := 0; j < gradOutput.Cols; j++ {
-			gradOutput.Set(i, j, 1.0)
+			gradOutput.Set(i, j, gradValues[j])
 		}
 	}
 
-	layer.Backward(gradOutput)
+	t.Log("梯度输出矩阵:")
+	t.Log(gradOutput.String())
+
+	gradInput, err := layer.Backward(gradOutput)
+	if err != nil {
+		t.Fatalf("反向传播失败：%v", err)
+	}
+
+	t.Log("输入梯度矩阵:")
+	t.Log(gradInput.String())
+	t.Log("权重梯度矩阵:")
+	t.Log(layer.WeightGradients.String())
+	t.Log("偏置梯度矩阵:")
+	t.Log(layer.BiasGradients.String())
 
 	// 更新权重
 	learningRate := 0.01
@@ -453,6 +489,11 @@ func TestConvolutionalLayerWeightUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("权重更新失败：%v", err)
 	}
+
+	t.Log("更新后的权重矩阵:")
+	t.Log(layer.Weights.String())
+	t.Log("更新后的偏置矩阵:")
+	t.Log(layer.Biases.String())
 
 	// 检查权重是否发生变化
 	weightChanged := false
@@ -489,6 +530,8 @@ func TestConvolutionalLayerWeightUpdate(t *testing.T) {
 	if !biasChanged {
 		t.Error("偏置未发生更新")
 	}
+
+	t.Log("=== 权重更新测试完成 ===")
 }
 
 // TestConvolutionalLayerZeroGradients 测试梯度清零

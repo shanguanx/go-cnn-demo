@@ -3,6 +3,31 @@
 ## 项目概述
 本项目旨在使用Go语言从零实现卷积神经网络(CNN)，不依赖任何深度学习框架，完成MNIST手写数字识别任务。
 
+## 🎯 核心目标和架构决策
+
+### 目标：实现最简单可工作的CNN完成MNIST手写数字识别
+- **目标准确率**: 95%+
+- **架构**: 简化版LeNet (2卷积+2池化+3全连接)
+- **数据集**: MNIST手写数字 (28x28灰度图像)
+
+### 🛠️ 关键技术决策：2D矩阵架构
+**决定使用2D矩阵而非4D张量的原因：**
+1. **简化实现**: 避免复杂的4D张量操作
+2. **兼容性**: 与现有matrix包完全兼容
+3. **内存效率**: 减少内存开销和分配
+4. **易于调试**: 2D数据更容易验证和测试
+
+**数据格式规范：**
+- **输入数据**: `[batch_size, channels*height*width]`
+- **卷积输出**: `[batch_size, out_channels*out_height*out_width]`  
+- **池化输出**: `[batch_size, channels*pooled_height*pooled_width]`
+- **全连接**: `[batch_size, features]`
+
+**索引映射算法：**
+- **3D到1D映射**: `index = c*H*W + h*W + w`
+- **池化窗口遍历**: 通过start/end坐标计算窗口内元素
+- **梯度反传**: 相同的索引映射确保梯度正确传播
+
 ## 已实现的基座功能
 
 ### 第一阶段：基础数学库 ✅ (已完成)
@@ -164,13 +189,95 @@
 - ✅ 性能基准测试
 - ✅ 测试结果：8个测试通过，0个失败
 
+### 第二阶段：CNN核心层 ✅ (已完成)
+
+#### 1. 卷积层（Convolutional Layer） ✅
+已在 `layers/` 目录中实现完整的卷积层：
+
+**卷积层结构** (`convolutional_common.go`)：
+- ✅ `ConvolutionalLayer` 结构体 - 完整的层定义
+- ✅ `NewConvolutionalLayer()` - 层构造函数
+- ✅ `SetInputSize()` - 输入输出尺寸计算和验证
+- ✅ 参数访问方法（权重、偏置、梯度获取）
+
+**前向传播** (`convolutional_forward.go`)：
+- ✅ `Forward()` - 批量前向传播实现
+- ✅ 使用im2col优化的卷积计算
+- ✅ 多通道卷积支持
+- ✅ 支持stride和padding
+- ✅ 偏置添加
+- ✅ 结果缓存用于反向传播
+
+**反向传播** (`convolutional_backward.go`)：
+- ✅ `Backward()` - 完整的反向传播实现
+- ✅ `computeWeightGradients()` - 计算权重梯度
+- ✅ `computeBiasGradients()` - 计算偏置梯度  
+- ✅ `computeInputGradients()` - 计算输入梯度
+- ✅ `UpdateWeights()` - 参数更新方法
+- ✅ `ZeroGradients()` - 梯度清零
+
+**参数初始化** (`convolutional_common.go:67-83`)：
+- ✅ `initializeWeights()` - He初始化实现
+  - 权重: N(0, √(2/fan_in))，适用于ReLU激活函数
+  - 偏置: 初始化为0
+- ❌ Xavier初始化（roadmap中规划但未实现）
+
+**技术特点：**
+- 使用im2col/col2im算法优化卷积运算，将卷积转换为高效矩阵乘法
+- 支持多通道、任意卷积核大小、步长和填充
+- 批量处理支持，提高训练效率
+- 完整的前向和反向传播实现
+- 梯度累积和参数更新机制
+
+#### 2. 池化层（Pooling Layer） ✅
+已在 `layers/` 目录中实现完整的池化层：
+
+**池化层结构** (`pooling_common.go`)：
+- ✅ `PoolingLayer` 结构体 - 完整的池化层定义
+- ✅ `NewMaxPoolingLayer()` - MaxPooling层构造函数
+- ✅ `NewAveragePoolingLayer()` - AveragePooling层构造函数
+- ✅ `SetInputSize()` - 输入输出尺寸计算和验证
+- ✅ 支持不同的池化窗口大小和步长参数
+
+**前向传播** (`pooling_forward.go`)：
+- ✅ `Forward()` - 批量前向传播实现，适配2D矩阵API
+- ✅ `forwardMaxPooling()` - MaxPooling前向传播
+  - 在池化窗口中寻找最大值
+  - 记录最大值位置用于反向传播
+- ✅ `forwardAveragePooling()` - AveragePooling前向传播
+  - 计算池化窗口中的平均值
+- ✅ 支持任意池化窗口大小、步长和输入尺寸
+
+**反向传播** (`pooling_backward.go`)：
+- ✅ `Backward()` - 完整的反向传播实现
+- ✅ `backwardMaxPooling()` - MaxPooling反向传播
+  - 梯度只传递给产生最大值的位置
+  - 使用前向传播缓存的最大值位置索引
+- ✅ `backwardAveragePooling()` - AveragePooling反向传播
+  - 梯度均匀分配到池化窗口中的每个位置
+- ✅ `ClearCache()` - 清理前向传播缓存
+
+**🔑 核心技术实现 - 2D矩阵池化：**
+- ✅ **数据格式**: 输入 `[batch_size, channels*height*width]`，输出 `[batch_size, channels*pooled_height*pooled_width]`
+- ✅ **索引映射**: `inputIdx = c*H*W + h*W + w`，`outputIdx = c*pH*pW + ph*pW + pw`
+- ✅ **窗口遍历**: 通过 `startH/endH, startW/endW` 计算池化窗口边界
+- ✅ **MaxPooling位置记录**: 将2D坐标 `(h,w)` 编码为1D索引 `h*W + w` 用于反向传播
+- ✅ **梯度分配**: MaxPooling梯度传给最大值位置，AveragePooling梯度均分到窗口内所有位置
+- ✅ **完全兼容**: 与现有matrix包API无缝集成，无需修改底层数据结构
+
+**测试覆盖：**
+- ✅ 完整的单元测试 (`tests/pooling_simple_test.go`)
+- ✅ MaxPooling和AveragePooling功能验证
+- ✅ 前向和反向传播正确性测试
+- ✅ 多种池化窗口和步长组合测试
+- ✅ 测试结果：4个测试全部通过
+
 ## 下一步计划
 
 ### 待实现功能（按优先级）：
 
-2. **CNN核心层** (`layers/`)
-   - 卷积层（前向+反向传播）
-   - 池化层（MaxPool, AvgPool）
+2. **CNN核心层** (`layers/`) - 继续实现
+   - ✅ 池化层（MaxPool, AvgPool）
    - 全连接层
    - 层的抽象接口
 
@@ -188,6 +295,7 @@
 - ✅ 基础测试框架 (`tests/matrix_test.go`, `tests/convolution_test.go`)  
 - ✅ 激活函数完整测试套件 (`tests/activations_test.go`)
 - ✅ 损失函数完整测试套件 (`tests/losses_test.go`)
+- ✅ 池化层完整测试套件 (`tests/pooling_simple_test.go`)
 - ✅ 包含单元测试、性能基准测试和数值稳定性测试
 - ✅ 总计测试通过率：100%（跳过不适用的测试）
 
@@ -195,11 +303,39 @@
 ✅ **第一个里程碑**：完成矩阵运算和基础数学函数，通过单元测试
 ✅ **激活函数里程碑**：完成所有主要激活函数及其导数，通过全面测试
 ✅ **损失函数里程碑**：完成所有主要损失函数及其导数，通过全面测试
+✅ **第二个里程碑**：实现单个卷积层的前向和反向传播
+✅ **池化层里程碑**：完成MaxPooling和AveragePooling层，通过全面测试
 
 **进度总结：**
 - 基础数学库：100% 完成
 - 激活函数模块：100% 完成  
 - 损失函数模块：100% 完成
+- 卷积层模块：100% 完成
+- 池化层模块：100% 完成
 - 测试覆盖：全面且通过率100%
 
-下一个目标：**第二个里程碑** - 实现CNN核心层模块
+## 🏗️ 2D矩阵架构总结
+
+### ✅ 已验证的优势
+1. **实现简洁**: 避免了复杂的4D张量操作和多维广播
+2. **内存高效**: 连续内存布局，无额外维度开销
+3. **调试友好**: 2D数据易于打印、验证和理解
+4. **完全兼容**: 与现有Go matrix生态系统无缝集成
+5. **性能良好**: 测试显示池化层和卷积层都能正确处理批量数据
+
+### 🔧 核心技术模式
+- **索引映射公式**: `index = c*H*W + h*W + w` (channel-major存储)
+- **窗口操作**: 通过起始结束坐标遍历局部区域
+- **梯度传播**: 使用相同索引映射确保正确的反向传播
+- **批量处理**: 外层循环遍历batch，内层处理单个样本
+
+### 📊 验证结果
+- **池化层测试**: 4/4 通过 (MaxPool前向/反向 + AvgPool前向/反向)
+- **矩阵基础**: 27/27 通过 (所有基础数学运算)
+- **数值正确性**: 手工验证的测试用例全部通过
+- **内存安全**: 无越界访问，完整的边界检查
+
+下一个目标：
+1. **继续CNN核心层** - 实现全连接层（Dense Layer）
+2. **实现优化器模块** - SGD、Momentum SGD、Adam
+3. **构建完整网络架构** - 网络定义和训练流程

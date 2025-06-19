@@ -3,6 +3,46 @@
 ## 项目概述
 使用Go语言从零实现卷积神经网络(CNN)，不依赖任何深度学习框架，完成MNIST手写数字识别任务。通过这个项目深入理解CNN的底层原理和实现细节。
 
+## 🎯 核心目标
+**实现最简单可工作的CNN架构来完成MNIST手写数字识别任务**
+
+### 目标架构（简化版LeNet）
+```
+输入层: 28x28x1 (MNIST灰度图像)
+    ↓
+卷积层1: Conv2D(filters=6, kernel_size=5x5, stride=1, padding=0) + ReLU
+输出: 24x24x6
+    ↓
+池化层1: MaxPool2D(pool_size=2x2, stride=2)
+输出: 12x12x6
+    ↓
+卷积层2: Conv2D(filters=16, kernel_size=5x5, stride=1, padding=0) + ReLU  
+输出: 8x8x16
+    ↓
+池化层2: MaxPool2D(pool_size=2x2, stride=2)
+输出: 4x4x16
+    ↓
+展平层: Flatten() -> 256个特征
+    ↓
+全连接层1: Dense(120) + ReLU
+    ↓  
+全连接层2: Dense(84) + ReLU
+    ↓
+输出层: Dense(10) + Softmax
+    ↓
+输出: 10个类别的概率分布 (0-9数字)
+```
+
+### 🎯 最终目标
+- **准确率**: 在MNIST测试集上达到 **95%+** 准确率
+- **训练时间**: 能够在合理时间内收敛（几十个epoch）
+- **代码质量**: 清晰可读，便于理解CNN原理
+
+### 🛠️ 技术决策
+- **数据格式**: 使用2D矩阵 `[batch_size, flattened_features]` 代替4D张量
+- **优化策略**: 优先实现功能，再优化性能
+- **测试覆盖**: 每个组件都有对应的单元测试
+
 ## 实施计划
 
 ### 第一阶段：基础数学库 (1-2周)
@@ -160,24 +200,35 @@ Dropout层: Dropout(0.5) [可选]
 
 ## 关键技术要点
 
-### 1. 卷积操作优化
-- im2col方法：将卷积转换为矩阵乘法
-- Winograd算法（高级优化）
-- 内存布局优化（NCHW vs NHWC）
+### 1. 数据格式设计（重要架构决策）
+- **2D矩阵架构**: 使用 `[batch_size, flattened_features]` 格式处理所有数据
+  - 输入数据: `[batch_size, channels*height*width]`
+  - 卷积输出: `[batch_size, out_channels*out_height*out_width]`
+  - 全连接输入/输出: `[batch_size, features]`
+- **索引映射**: 通过数学计算将多维坐标映射到1D索引
+  - 3D到1D: `index = c*H*W + h*W + w`
+  - 池化窗口遍历: 计算start/end位置进行窗口操作
+- **兼容性**: 与现有2D matrix包完全兼容，无需4D张量实现
 
-### 2. 反向传播核心概念
+### 2. 卷积操作优化
+- im2col方法：将卷积转换为矩阵乘法
+- 多通道处理：通过索引计算处理通道维度
+- 内存布局优化：连续内存访问模式
+
+### 3. 反向传播核心概念
 - 计算图构建
 - 自动微分实现
 - 梯度累积和清零
 - 数值稳定性处理
+- **池化层梯度传播**：MaxPooling记录最大值位置，AveragePooling均匀分配
 
-### 3. 性能考虑
+### 4. 性能考虑
 - 内存分配策略
 - 缓存友好的数据布局
-- 并行计算设计
-- BLAS库集成（可选）
+- 2D矩阵操作的优化
+- 避免4D张量的内存开销
 
-### 4. 调试技巧
+### 5. 调试技巧
 - 梯度检查实现
 - 单元测试每个层
 - 与PyTorch/TensorFlow结果对比
