@@ -274,11 +274,62 @@
 
 ## 下一步计划
 
+#### 3. 全连接层（Dense Layer） ✅
+已在 `layers/` 目录中实现完整的全连接层：
+
+**全连接层结构** (`dense_common.go`)：
+- ✅ `DenseLayer` 结构体 - 完整的层定义
+- ✅ `NewDenseLayer()` - 层构造函数
+- ✅ 参数访问方法（权重、偏置、梯度获取）
+- ✅ `ZeroGradients()` - 梯度清零
+- ✅ `UpdateWeights()` - SGD权重更新
+- ✅ `ClearCache()` - 缓存清理
+
+**前向传播** (`dense_forward.go`)：
+- ✅ `Forward()` - 批量前向传播实现：output = input * weights + biases
+- ✅ 矩阵乘法计算：input (batch_size, input_features) × weights (input_features, output_features)
+- ✅ 偏置广播：将(1, output_features)偏置添加到(batch_size, output_features)结果
+- ✅ `ForwardWithActivation()` - 便利方法，集成激活函数
+- ✅ 输入输出缓存用于反向传播
+
+**反向传播** (`dense_backward.go`)：
+- ✅ `Backward()` - 完整的反向传播实现
+- ✅ `computeWeightGradients()` - 计算权重梯度：gradWeights = input^T * gradOutput
+- ✅ `computeBiasGradients()` - 计算偏置梯度：沿批次维度求和
+- ✅ 输入梯度计算：gradInput = gradOutput * weights^T
+- ✅ `BackwardWithActivationDerivative()` - 集成激活函数导数的反向传播
+- ✅ 梯度累积支持（多次反向传播）
+
+**参数初始化** (`dense_common.go:63-111`)：
+- ✅ `initializeWeights()` - He初始化实现
+  - 权重: N(0, √(2/fan_in))，适用于ReLU激活函数
+  - 偏置: 初始化为0
+- ✅ `initializeWeightsXavier()` - Xavier初始化实现
+  - 权重: N(0, √(1/fan_in))，适用于Sigmoid/Tanh激活函数
+  - 偏置: 初始化为0
+
+**技术特点：**
+- 完全基于2D矩阵实现，与现有matrix包完美兼容
+- 支持批量处理，提高训练效率
+- 完整的前向和反向传播实现
+- 梯度累积和参数更新机制
+- 灵活的激活函数集成
+- 内存高效的实现
+
+**测试覆盖：**
+- ✅ 完整的单元测试 (`tests/dense_layer_test.go`)
+- ✅ 前向传播正确性验证（手工计算对比）
+- ✅ 反向传播梯度计算验证
+- ✅ 权重更新和梯度累积测试
+- ✅ 错误处理和边界条件测试
+- ✅ 性能基准测试
+- ✅ 测试结果：7个测试全部通过
+
 ### 待实现功能（按优先级）：
 
-2. **CNN核心层** (`layers/`) - 继续实现
+2. **CNN核心层** (`layers/`) - 已完成
    - ✅ 池化层（MaxPool, AvgPool）
-   - 全连接层
+   - ✅ 全连接层（Dense Layer）
    - 层的抽象接口
 
 3. **优化器模块** (`optimizers/`)
@@ -305,6 +356,7 @@
 ✅ **损失函数里程碑**：完成所有主要损失函数及其导数，通过全面测试
 ✅ **第二个里程碑**：实现单个卷积层的前向和反向传播
 ✅ **池化层里程碑**：完成MaxPooling和AveragePooling层，通过全面测试
+✅ **全连接层里程碑**：完成Dense层的前向/反向传播，参数初始化和更新，通过全面测试
 
 **进度总结：**
 - 基础数学库：100% 完成
@@ -312,6 +364,8 @@
 - 损失函数模块：100% 完成
 - 卷积层模块：100% 完成
 - 池化层模块：100% 完成
+- 全连接层模块：100% 完成
+- CNN核心层：100% 完成
 - 测试覆盖：全面且通过率100%
 
 ## 🏗️ 2D矩阵架构总结
@@ -336,6 +390,6 @@
 - **内存安全**: 无越界访问，完整的边界检查
 
 下一个目标：
-1. **继续CNN核心层** - 实现全连接层（Dense Layer）
-2. **实现优化器模块** - SGD、Momentum SGD、Adam
-3. **构建完整网络架构** - 网络定义和训练流程
+1. **实现优化器模块** - SGD、Momentum SGD、Adam优化器
+2. **构建完整网络架构** - 网络定义和训练流程
+3. **实现训练循环** - Mini-batch训练、验证、early stopping
