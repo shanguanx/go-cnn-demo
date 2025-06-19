@@ -242,11 +242,16 @@ func TestConvolutionalLayerBackward(t *testing.T) {
 		t.Fatalf("设置输入尺寸失败：%v", err)
 	}
 
+	// 手动初始化权重和偏置（全1权重，全0偏置）
+	layer.SetFixedWeights() // 使用确定值初始化参数
+
 	// 创建输入
 	input := matrix.NewMatrix(1, 9)
 	for i := 0; i < 9; i++ {
 		input.Set(0, i, float64(i+1)) // 填充1-9
 	}
+	t.Log("\n输入矩阵:")
+	t.Log(input.String())
 
 	// 前向传播
 	output, err := layer.Forward(input)
@@ -262,11 +267,30 @@ func TestConvolutionalLayerBackward(t *testing.T) {
 		}
 	}
 
+	// 打印初始权重和偏置
+	t.Log("\n初始权重矩阵:")
+	t.Log(layer.Weights.String())
+	t.Log("\n初始偏置矩阵:")
+	t.Log(layer.Biases.String())
+	t.Log("\n梯度输出矩阵:")
+	t.Log(gradOutput.String())
+
 	// 反向传播
 	gradInput, err := layer.Backward(gradOutput)
 	if err != nil {
 		t.Fatalf("反向传播失败：%v", err)
 	}
+	// 打印输入梯度矩阵
+	t.Log("\n输入梯度矩阵:")
+	t.Log(gradInput.String())
+
+	// 打印权重梯度矩阵（wkx梯度）
+	t.Log("\n权重梯度矩阵:")
+	t.Log(layer.WeightGradients.String())
+
+	// 打印偏置梯度矩阵
+	t.Log("\n偏置梯度矩阵:")
+	t.Log(layer.BiasGradients.String())
 
 	// 检查输入梯度形状
 	if gradInput.Rows != input.Rows || gradInput.Cols != input.Cols {
