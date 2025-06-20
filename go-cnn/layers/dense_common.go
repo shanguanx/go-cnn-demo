@@ -190,6 +190,24 @@ func (layer *DenseLayer) String() string {
 		layer.InputFeatures, layer.OutputFeatures)
 }
 
+// SetFixedWeights 设置固定的权重和偏置（用于测试）
+func (layer *DenseLayer) SetFixedWeights() {
+	// 设置固定的权重值
+	// 使用简单的递增模式
+	rows, cols := layer.Weights.Rows, layer.Weights.Cols
+	for i := 0; i < rows; i++ {
+		for j := 0; j < cols; j++ {
+			// 权重值为 (i*cols + j) * 0.1
+			layer.Weights.Set(i, j, float64(i*cols+j)*0.1)
+		}
+	}
+
+	// 设置固定的偏置值
+	for j := 0; j < layer.OutputFeatures; j++ {
+		layer.Biases.Set(0, j, float64(j)*0.5)
+	}
+}
+
 // ClearCache 清理前向传播缓存
 func (layer *DenseLayer) ClearCache() {
 	layer.LastInput = nil

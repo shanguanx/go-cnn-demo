@@ -157,3 +157,33 @@ func (layer *ConvolutionalLayer) String() string {
 		layer.InChannels, layer.OutChannels, layer.KernelSize, layer.Stride, layer.Padding,
 		layer.InputHeight, layer.InputWidth)
 }
+
+// GetInChannels 获取输入通道数
+func (layer *ConvolutionalLayer) GetInChannels() int {
+	return layer.InChannels
+}
+
+// GetOutChannels 获取输出通道数
+func (layer *ConvolutionalLayer) GetOutChannels() int {
+	return layer.OutChannels
+}
+
+// GetKernelSize 获取卷积核大小
+func (layer *ConvolutionalLayer) GetKernelSize() int {
+	return layer.KernelSize
+}
+
+// GetStride 获取步长
+func (layer *ConvolutionalLayer) GetStride() int {
+	return layer.Stride
+}
+
+// GetPadding 获取填充
+func (layer *ConvolutionalLayer) GetPadding() int {
+	return layer.Padding
+}
+
+// GetName 获取层名称
+func (layer *ConvolutionalLayer) GetName() string {
+	return "ConvolutionalLayer"
+}

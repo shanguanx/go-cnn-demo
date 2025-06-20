@@ -6,6 +6,16 @@ import (
 	"github.com/user/go-cnn/matrix"
 )
 
+// Exp 计算e的x次幂
+func Exp(x float64) float64 {
+	return math.Exp(x)
+}
+
+// Tanh 计算双曲正切
+func Tanh(x float64) float64 {
+	return math.Tanh(x)
+}
+
 // ReLU 激活函数：f(x) = max(0, x)
 func ReLU(m *matrix.Matrix) *matrix.Matrix {
 	result := matrix.Zeros(m.Rows, m.Cols)
