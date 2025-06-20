@@ -187,6 +187,46 @@ func SoftmaxInPlace(m *matrix.Matrix) {
 	}
 }
 
+// SoftmaxDerivative 计算Softmax的导数（雅可比矩阵与上游梯度的乘积）
+// softmaxOutput: Softmax的输出值
+// gradOutput: 从上游传来的梯度
+func SoftmaxDerivative(softmaxOutput, gradOutput *matrix.Matrix) *matrix.Matrix {
+	if softmaxOutput.Rows != gradOutput.Rows || softmaxOutput.Cols != gradOutput.Cols {
+		panic("Softmax输出和梯度的形状必须相同")
+	}
+
+	batchSize := softmaxOutput.Rows
+	numClasses := softmaxOutput.Cols
+	grad := matrix.Zeros(batchSize, numClasses)
+
+	// 对每个样本独立计算
+	for b := 0; b < batchSize; b++ {
+		// 获取当前样本的softmax输出和梯度
+		softmaxOut := make([]float64, numClasses)
+		gradOut := make([]float64, numClasses)
+
+		for j := 0; j < numClasses; j++ {
+			softmaxOut[j] = softmaxOutput.At(b, j)
+			gradOut[j] = gradOutput.At(b, j)
+		}
+
+		// 计算雅可比矩阵与梯度的乘积
+		for i := 0; i < numClasses; i++ {
+			sum := 0.0
+			for j := 0; j < numClasses; j++ {
+				if i == j {
+					sum += gradOut[j] * softmaxOut[i] * (1 - softmaxOut[j])
+				} else {
+					sum += gradOut[j] * (-softmaxOut[i] * softmaxOut[j])
+				}
+			}
+			grad.Set(b, i, sum)
+		}
+	}
+
+	return grad
+}
+
 // SoftmaxCrossEntropyDerivative Softmax与交叉熵损失结合的导数
 // 当Softmax作为输出层，交叉熵作为损失函数时，导数简化为：predicted - true
 func SoftmaxCrossEntropyDerivative(predicted, trueLabels *matrix.Matrix) *matrix.Matrix {
