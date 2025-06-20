@@ -48,7 +48,7 @@ func Softmax(a *Node) *Node {
 // Dense 创建全连接层节点
 func Dense(input *Node, outputSize int) *Node {
 	inputSize := input.Value.Cols
-	op := NewDenseLayerOp(inputSize, outputSize)
+	op := NewDenseOp(inputSize, outputSize)
 	output := op.Forward(input.Value)
 	// 全连接层总是需要梯度，因为它有可训练的权重
 	return NewNode(output, true, op, input)
@@ -57,7 +57,7 @@ func Dense(input *Node, outputSize int) *Node {
 // DenseWithFixedWeights 创建带固定权重的全连接层节点（用于测试）
 func DenseWithFixedWeights(input *Node, outputSize int) *Node {
 	inputSize := input.Value.Cols
-	op := NewDenseLayerOp(inputSize, outputSize)
+	op := NewDenseOp(inputSize, outputSize)
 
 	// 在前向传播之前设置固定权重
 	op.SetFixedWeights()
@@ -69,10 +69,10 @@ func DenseWithFixedWeights(input *Node, outputSize int) *Node {
 
 // Conv2d 创建卷积层节点
 func Conv2d(input *Node, outChannels, kernelSize, stride, padding int, inputHeight, inputWidth, inChannels int) *Node {
-	op := NewConvolutionalLayerOp(inChannels, outChannels, kernelSize, stride, padding)
+	op := NewConvOp(inChannels, outChannels, kernelSize, stride, padding)
 
 	// 设置输入尺寸 - 卷积层只需要高度和宽度
-	err := op.ConvolutionalLayer.SetInputSize(inputHeight, inputWidth)
+	err := op.SetInputSize(inputHeight, inputWidth)
 	if err != nil {
 		panic("Failed to set input size for Conv2d: " + err.Error())
 	}
@@ -84,13 +84,13 @@ func Conv2d(input *Node, outChannels, kernelSize, stride, padding int, inputHeig
 
 // Conv2dWithFixedWeights 创建带固定权重的卷积层节点（用于测试）
 func Conv2dWithFixedWeights(input *Node, outChannels, kernelSize, stride, padding int, inputHeight, inputWidth, inChannels int) *Node {
-	op := NewConvolutionalLayerOp(inChannels, outChannels, kernelSize, stride, padding)
+	op := NewConvOp(inChannels, outChannels, kernelSize, stride, padding)
 
 	// 在前向传播之前设置固定权重
 	op.SetFixedWeights()
 
 	// 设置输入尺寸 - 卷积层只需要高度和宽度
-	err := op.ConvolutionalLayer.SetInputSize(inputHeight, inputWidth)
+	err := op.SetInputSize(inputHeight, inputWidth)
 	if err != nil {
 		panic("Failed to set input size for Conv2dWithFixedWeights: " + err.Error())
 	}
@@ -102,10 +102,10 @@ func Conv2dWithFixedWeights(input *Node, outChannels, kernelSize, stride, paddin
 
 // MaxPool2d 创建最大池化层节点
 func MaxPool2d(input *Node, poolSize, stride int, inputHeight, inputWidth, channels int) *Node {
-	op := NewMaxPoolingLayerOp(poolSize, stride)
+	op := NewMaxPoolOp(poolSize, poolSize, stride, stride)
 
 	// 设置输入尺寸
-	err := op.PoolingLayer.SetInputSize(inputHeight, inputWidth, channels)
+	err := op.SetInputSize(inputHeight, inputWidth, channels)
 	if err != nil {
 		panic("Failed to set input size for MaxPool2d: " + err.Error())
 	}

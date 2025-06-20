@@ -449,7 +449,7 @@ func TestBuildDigitCNN(t *testing.T) {
 	}
 
 	// 访问全连接层2的权重梯度
-	if dense2Op, ok := dense2.Op.(*graph.DenseLayerOp); ok {
+	if dense2Op, ok := dense2.Op.(*graph.DenseOp); ok {
 		weightGrads := dense2Op.GetWeightGradients()
 		biasGrads := dense2Op.GetBiasGradients()
 		t.Log("全连接层2权重梯度:")
@@ -469,7 +469,7 @@ func TestBuildDigitCNN(t *testing.T) {
 	}
 
 	// 访问全连接层1的权重梯度
-	if dense1Op, ok := dense1.Op.(*graph.DenseLayerOp); ok {
+	if dense1Op, ok := dense1.Op.(*graph.DenseOp); ok {
 		weightGrads := dense1Op.GetWeightGradients()
 		biasGrads := dense1Op.GetBiasGradients()
 		t.Log("全连接层1权重梯度:")
@@ -499,7 +499,7 @@ func TestBuildDigitCNN(t *testing.T) {
 	}
 
 	// 访问卷积层2的权重梯度
-	if conv2Op, ok := conv2.Op.(*graph.ConvolutionalLayerOp); ok {
+	if conv2Op, ok := conv2.Op.(*graph.ConvOp); ok {
 		weightGrads := conv2Op.GetWeightGradients()
 		biasGrads := conv2Op.GetBiasGradients()
 		if weightGrads != nil {
@@ -532,7 +532,7 @@ func TestBuildDigitCNN(t *testing.T) {
 	}
 
 	// 访问卷积层1的权重梯度
-	if conv1Op, ok := conv1.Op.(*graph.ConvolutionalLayerOp); ok {
+	if conv1Op, ok := conv1.Op.(*graph.ConvOp); ok {
 		weightGrads := conv1Op.GetWeightGradients()
 		biasGrads := conv1Op.GetBiasGradients()
 		if weightGrads != nil {

@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/user/go-cnn/activations"
-	"github.com/user/go-cnn/layers"
+	"github.com/user/go-cnn/graph"
 	"github.com/user/go-cnn/matrix"
 )
 
@@ -30,8 +30,8 @@ func main() {
 	fmt.Println("函数：f1(x, W, b) = W ⊛ x + b")
 
 	// 创建卷积层：1输入通道，2输出通道，2x2卷积核，步长1，填充0
-	convLayer := layers.NewConvolutionalLayer(1, 2, 2, 1, 0)
-	err := convLayer.SetInputSize(3, 3)
+	convOp := graph.NewConvOp(1, 2, 2, 1, 0)
+	err := convOp.SetInputSize(3, 3)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,17 +39,19 @@ func main() {
 	// 设置简单的权重进行演示
 	// 第一个卷积核：[[1, 1], [1, 1]]
 	// 第二个卷积核：[[0, 1], [1, 0]]
+	weights := convOp.GetWeights()
 	for i := 0; i < 4; i++ {
-		convLayer.Weights.Set(0, i, 1.0) // 全1卷积核
+		weights.Set(0, i, 1.0) // 全1卷积核
 	}
-	convLayer.Weights.Set(1, 0, 0.0) // 第二个卷积核
-	convLayer.Weights.Set(1, 1, 1.0)
-	convLayer.Weights.Set(1, 2, 1.0)
-	convLayer.Weights.Set(1, 3, 0.0)
+	weights.Set(1, 0, 0.0) // 第二个卷积核
+	weights.Set(1, 1, 1.0)
+	weights.Set(1, 2, 1.0)
+	weights.Set(1, 3, 0.0)
 
 	// 偏置设为0
-	convLayer.Biases.Set(0, 0, 0.0)
-	convLayer.Biases.Set(1, 0, 0.0)
+	biases := convOp.GetBiases()
+	biases.Set(0, 0, 0.0)
+	biases.Set(1, 0, 0.0)
 
 	// 准备输入：展平为(batch_size=1, channels*height*width=1*3*3=9)
 	flatInput := matrix.NewMatrix(1, 9)
@@ -58,10 +60,7 @@ func main() {
 	}
 
 	// 执行卷积变换
-	convOutput, err := convLayer.Forward(flatInput)
-	if err != nil {
-		log.Fatal(err)
-	}
+	convOutput := convOp.Forward(flatInput)
 
 	fmt.Println("卷积层输出 (2个特征图，每个2x2):")
 	fmt.Println(convOutput.String())

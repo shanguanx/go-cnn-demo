@@ -8,7 +8,7 @@ import (
 	"github.com/user/go-cnn/matrix"
 )
 
-//const tolerance = 1e-10
+const tolerance = 1e-10
 
 func TestReLU(t *testing.T) {
 	// 测试基本ReLU功能
