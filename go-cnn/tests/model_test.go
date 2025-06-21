@@ -1,6 +1,8 @@
 package tests
 
 import (
+	"testing"
+
 	"github.com/user/go-cnn/graph"
 	"github.com/user/go-cnn/matrix"
 	"github.com/user/go-cnn/optimizers"

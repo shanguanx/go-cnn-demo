@@ -339,24 +339,33 @@ for epoch := 0; epoch < numEpochs; epoch++ {
 6. **权重初始化**: 卷积和全连接层默认使用He初始化
 7. **测试**: 使用`*WithFixedWeights`版本进行确定性测试
 
-## 9. 优化器 (optimizers包)
+## 9. 数据加载 (data包)
 
-### 9.1 SGD优化器
+### 9.1 MNIST数据集
 ```go
-// 创建SGD优化器
-optimizer := optimizers.NewSGD(learningRate float64) *SGD
-
-// 参数更新: param = param - learning_rate * gradient
-optimizer.Update(param, grad *Matrix)
-
-// 学习率管理
-optimizer.SetLearningRate(lr float64)
-currentLR := optimizer.GetLearningRate() float64
+dataset, err := data.LoadMNISTFromCSV(filepath string, isTraining bool) (*MNISTDataset, error)
+size := dataset.Len()                            // 获取样本数量
+data, label, err := dataset.GetItem(idx)         // 获取单个样本 [1,784], [1,1]
 ```
 
+### 9.2 数据加载器
+```go
+loader := data.NewDataLoader(dataset Dataset, batchSize int) *DataLoader
+batchData, batchLabels, hasMore := loader.Next() // 返回[batch_size,784], [batch_size,1]
+loader.Reset()                                   // 重置到开始位置
+numBatches := loader.NumBatches()                // 获取总批次数
+```
 
+## 10. 优化器 (optimizers包)
 
-## 10. 与Python库对比
+### 10.1 SGD优化器
+```go
+optimizer := optimizers.NewSGD(learningRate float64) *SGD
+optimizer.Update(param, grad *Matrix)           // 参数更新
+optimizer.SetLearningRate(lr float64)           // 设置学习率
+```
+
+## 11. 与Python库对比
 
 | 功能 | Go-CNN | PyTorch/NumPy |
 |------|--------|---------------|
