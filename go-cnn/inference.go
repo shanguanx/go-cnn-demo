@@ -17,8 +17,8 @@ func RunInference() {
 
 	// 配置参数
 	const (
-		modelPath = "/Users/dxm/Desktop/dl/digit-recognizer/go-cnn/mnist_model.json"
-		testPath  = "/Users/dxm/Desktop/dl/digit-recognizer/train.csv" // 使用训练数据的一部分作为测试
+		modelPath = "mnist_model.json"
+		testPath  = "../train.csv" // 使用训练数据的一部分作为测试
 		batchSize = 32
 	)
 

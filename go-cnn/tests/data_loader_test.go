@@ -9,7 +9,7 @@ import (
 // TestDataLoaderWithRealData 测试使用真实MNIST数据（如果存在）
 func TestDataLoaderWithRealData(t *testing.T) {
 	// 尝试加载真实的train.csv文件
-	dataset, err := data.LoadMNISTFromCSV("/Users/dxm/Desktop/dl/digit-recognizer/train.csv", true)
+	dataset, err := data.LoadMNISTFromCSV("../../train.csv", true)
 	if err != nil {
 		t.Skipf("Skipping real data test: %v", err)
 		return

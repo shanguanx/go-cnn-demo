@@ -21,7 +21,7 @@ func RunTraining() {
 		batchSize    = 32
 		numEpochs    = 2
 		learningRate = 0.017
-		trainPath    = "/Users/dxm/Desktop/dl/digit-recognizer/train.csv"
+		trainPath    = "../train.csv"
 	)
 
 	// 1. 加载训练数据
