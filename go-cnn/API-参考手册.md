@@ -111,6 +111,9 @@ activations.SigmoidDerivativeInPlace(sigmoidOutput *Matrix)  // 就地版本
 output := activations.Softmax(input *Matrix) *Matrix
 activations.SoftmaxInPlace(input *Matrix)         // 就地版本
 
+// Softmax导数: 计算雅可比矩阵与上游梯度的乘积
+grad := activations.SoftmaxDerivative(softmaxOutput, gradOutput *Matrix) *Matrix
+
 // Softmax+交叉熵联合导数: predicted - true
 grad := activations.SoftmaxCrossEntropyDerivative(predicted, trueLabels *Matrix) *Matrix
 ```

@@ -116,8 +116,13 @@ func (n *Node) Backward() {
 			gradInputs := node.Op.Backward(node.Gradient, node.Inputs...)
 
 			// 将梯度传递给输入节点
+			if len(gradInputs) != len(node.Inputs) {
+				panic(fmt.Sprintf("节点 %s 的梯度数量不匹配：期望 %d 个，得到 %d 个",
+					node.Name, len(node.Inputs), len(gradInputs)))
+			}
+
 			for j, input := range node.Inputs {
-				if input.RequiresGrad && j < len(gradInputs) {
+				if input.RequiresGrad {
 					if input.Gradient == nil {
 						input.Gradient = gradInputs[j].Copy()
 					} else {
