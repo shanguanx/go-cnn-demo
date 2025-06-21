@@ -7,6 +7,7 @@ import (
 
 	"github.com/user/go-cnn/data"
 	"github.com/user/go-cnn/graph"
+	"github.com/user/go-cnn/inference"
 	"github.com/user/go-cnn/matrix"
 	"github.com/user/go-cnn/optimizers"
 )
@@ -18,7 +19,7 @@ func main() {
 	const (
 		batchSize    = 32
 		numEpochs    = 10
-		learningRate = 0.007
+		learningRate = 0.017
 		trainPath    = "/Users/dxm/Desktop/dl/digit-recognizer/train.csv"
 	)
 
@@ -58,6 +59,10 @@ func main() {
 	paramCount := model.GetParameterCount()
 	fmt.Printf("网络构建完成: %d 个可训练参数\n", paramCount)
 
+	// 创建推理器
+	inferencer := inference.NewInferencer(input, output, batchSize)
+	fmt.Println("推理器创建完成")
+
 	// 5. 开始训练
 	fmt.Println("开始训练...")
 	startTime := time.Now()
@@ -67,6 +72,8 @@ func main() {
 		trainLoader.Reset()
 
 		epochLoss := 0.0
+		epochCorrect := 0
+		epochTotal := 0
 		batchCount := 0
 
 		// 训练一个epoch
@@ -106,10 +113,16 @@ func main() {
 
 			batchCount++
 
-			// 每100个批次打印一次进度
+			// 每100个批次打印一次进度（包含准确率）
 			if batchCount%100 == 0 {
-				fmt.Printf("Epoch %d, Batch %d, Loss: %.4f\n",
-					epoch+1, batchCount, batchLoss)
+				// 计算准确率并累积到epoch统计中
+				result := inferencer.InferWithMetrics(batchData, batchLabels)
+				batchCorrect := int(result.Accuracy * float64(batchSize) / 100.0)
+				epochCorrect += batchCorrect
+				epochTotal += batchSize
+
+				fmt.Printf("Epoch %d, Batch %d, Loss: %.4f, Accuracy: %.2f%%\n",
+					epoch+1, batchCount, batchLoss, result.Accuracy)
 			}
 		}
 
@@ -117,72 +130,35 @@ func main() {
 		avgLoss := epochLoss / float64(batchCount)
 		epochDuration := time.Since(epochStartTime)
 
-		fmt.Printf("Epoch %d/%d 完成 - 平均损失: %.4f, 用时: %v\n",
-			epoch+1, numEpochs, avgLoss, epochDuration)
+		// 计算epoch准确率（基于每100个batch的累积统计）
+		epochAccuracy := 0.0
+		if epochTotal > 0 {
+			epochAccuracy = float64(epochCorrect) / float64(epochTotal) * 100.0
+		}
+
+		fmt.Printf("Epoch %d/%d 完成 - 平均损失: %.4f, 训练准确率: %.2f%% (%d/%d), 用时: %v\n",
+			epoch+1, numEpochs, avgLoss, epochAccuracy, epochCorrect, epochTotal, epochDuration)
 	}
 
 	totalDuration := time.Since(startTime)
 	fmt.Printf("训练完成! 总用时: %v\n", totalDuration)
 
-	// 6. 简单验证
+	// 6. 简单验证（使用推理器）
 	fmt.Println("开始验证...")
-	validateModel(input, output, trainDataset, batchSize)
+	validateWithInferencer(inferencer, trainDataset, batchSize)
 }
 
-// validateModel 简单验证模型性能
-func validateModel(input, output *graph.Node, dataset *data.MNISTDataset, batchSize int) {
-	// 使用部分训练数据进行验证（简化版）
-	loader := data.NewDataLoader(dataset, batchSize)
+// validateWithInferencer 使用推理器进行验证
+func validateWithInferencer(inferencer *inference.ModelInferencer, dataset *data.MNISTDataset, batchSize int) {
+	fmt.Println("使用推理器进行模型验证...")
 
-	correct := 0
-	total := 0
+	// 使用推理器的完整评估功能
+	// 这里只评估部分数据以节省时间
+	validationBatchSize := batchSize
+	result := inferencer.Evaluate(dataset, validationBatchSize)
 
-	// 只验证前几个批次
-	maxBatches := 10
-	batchCount := 0
-
-	for {
-		batchData, batchLabels, hasMore := loader.Next()
-		if !hasMore || batchCount >= maxBatches {
-			break
-		}
-
-		// 跳过不完整的批次
-		if batchData.Rows != batchSize {
-			continue
-		}
-
-		// 前向传播（更新输入数据并重新计算）
-		input.Value = batchData
-		recalculateForward(output)
-		predictions := output.Value
-
-		// 计算准确率
-		for i := 0; i < predictions.Rows; i++ {
-			// 找到预测的最大值索引
-			maxIdx := 0
-			maxVal := predictions.At(i, 0)
-			for j := 1; j < predictions.Cols; j++ {
-				if predictions.At(i, j) > maxVal {
-					maxVal = predictions.At(i, j)
-					maxIdx = j
-				}
-			}
-
-			// 真实标签
-			trueLabel := int(batchLabels.At(i, 0))
-
-			if maxIdx == trueLabel {
-				correct++
-			}
-			total++
-		}
-
-		batchCount++
-	}
-
-	accuracy := float64(correct) / float64(total) * 100.0
-	fmt.Printf("验证完成: 准确率 = %.2f%% (%d/%d)\n", accuracy, correct, total)
+	// 打印详细的评估结果
+	inference.PrintEvaluationResult(result)
 }
 
 // buildSimpleCNN 构建简化的CNN网络
