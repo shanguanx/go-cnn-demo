@@ -197,14 +197,14 @@ func (op *DenseOp) Name() string {
 	return fmt.Sprintf("Dense(%d->%d)", op.InputFeatures, op.OutputFeatures)
 }
 
-// GetWeights 获取权重副本
+// GetWeights 获取权重引用
 func (op *DenseOp) GetWeights() *matrix.Matrix {
-	return op.weights.Copy()
+	return op.weights
 }
 
-// GetBiases 获取偏置副本
+// GetBiases 获取偏置引用
 func (op *DenseOp) GetBiases() *matrix.Matrix {
-	return op.biases.Copy()
+	return op.biases
 }
 
 // GetWeightGradients 获取权重梯度副本

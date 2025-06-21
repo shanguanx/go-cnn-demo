@@ -132,6 +132,7 @@ def test_cnn_comparison():
     print("\n7. LOSS CALCULATION")
     print(f"   Target label: 1")
     print(f"   Loss value: {loss.item():.6f}")
+  
     
     # Backward pass
     print("\n8. BACKWARD PASS")
@@ -145,6 +146,21 @@ def test_cnn_comparison():
     print(f"   Conv weight gradients: {flatten_tensor(conv1.weight.grad)}")
     print(f"   Conv bias gradients: {flatten_tensor(conv1.bias.grad)}")
     print(f"   Input gradients: {flatten_tensor(input_tensor.grad)}")
+    
+    # 创建优化器并执行参数更新
+    optimizer = torch.optim.SGD([conv1.weight, conv1.bias, dense1.weight, dense1.bias], lr=0.1)
+    
+    # Optimizer step
+    print("\n10. OPTIMIZER STEP")
+    optimizer.step()
+    print("   Parameter update completed")
+    
+    # Updated weights
+    print("\n11. UPDATED WEIGHTS")
+    print(f"   Dense weights: {flatten_tensor(dense1.weight)}")
+    print(f"   Dense bias: {flatten_tensor(dense1.bias)}")
+    print(f"   Conv weights: {flatten_tensor(conv1.weight)}")
+    print(f"   Conv bias: {flatten_tensor(conv1.bias)}")
     
     print("\n" + "=" * 50)
     print("=== Test Complete ===")

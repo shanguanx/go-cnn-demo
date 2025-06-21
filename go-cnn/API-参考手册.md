@@ -204,6 +204,25 @@ loss := graph.SoftmaxCrossEntropyLoss(logits, targets *Node, useScalarLabels boo
 output := graph.BuildDigitCNN(input *Node) *Node
 ```
 
+### 4.6 模型管理 (Model)
+```go
+// 创建模型
+model := graph.NewModel(optimizer *optimizers.SGD) *Model
+
+// 参数管理
+model.CollectParameters(root *Node)              // 自动收集计算图中的可训练层
+model.AddLayerOp(layerOp LayerOperation)         // 手动添加可训练层
+count := model.GetParameterCount() int           // 获取参数数量
+
+// 训练相关
+model.ZeroGrad()                                 // 清零所有参数梯度
+model.Step()                                     // 执行一步参数更新
+
+// 推理相关
+model.SetOutput(output *Node)                    // 设置模型输出节点
+result := model.Forward(input *Matrix) *Matrix   // 前向传播
+```
+
 ## 5. 神经网络层操作详细参数
 
 ### 5.1 卷积层 (ConvOp)
@@ -283,21 +302,30 @@ dense1 := graph.Dense(flatten, 120)
 output := graph.ReLU(dense1)
 ```
 
-### 7.2 计算损失和梯度
+### 7.2 完整训练循环 (使用Model)
 ```go
-// 创建目标节点
-targets := graph.Input(targetData, "targets")
+// 创建模型和优化器
+optimizer := optimizers.NewSGD(0.001)
+model := graph.NewModel(optimizer)
 
-// 计算损失
-loss := graph.SoftmaxCrossEntropyLoss(output, targets, true)
+// 构建网络
+output := graph.BuildDigitCNN(input)
+model.SetOutput(output)
+model.CollectParameters(output)
 
-// 反向传播
-loss.Backward()
-
-// 获取梯度
-for _, node := range trainableNodes {
-    grad := node.Gradient
-    // 更新参数...
+// 训练循环
+for epoch := 0; epoch < numEpochs; epoch++ {
+    // 前向传播
+    prediction := model.Forward(inputData)
+    
+    // 计算损失
+    targets := graph.Input(targetData, "targets")
+    loss := graph.SoftmaxCrossEntropyLoss(output, targets, true)
+    
+    // 反向传播
+    model.ZeroGrad()                    // 清零梯度
+    loss.Backward()                     // 计算梯度
+    model.Step()                        // 更新参数
 }
 ```
 
@@ -311,7 +339,24 @@ for _, node := range trainableNodes {
 6. **权重初始化**: 卷积和全连接层默认使用He初始化
 7. **测试**: 使用`*WithFixedWeights`版本进行确定性测试
 
-## 9. 与Python库对比
+## 9. 优化器 (optimizers包)
+
+### 9.1 SGD优化器
+```go
+// 创建SGD优化器
+optimizer := optimizers.NewSGD(learningRate float64) *SGD
+
+// 参数更新: param = param - learning_rate * gradient
+optimizer.Update(param, grad *Matrix)
+
+// 学习率管理
+optimizer.SetLearningRate(lr float64)
+currentLR := optimizer.GetLearningRate() float64
+```
+
+
+
+## 10. 与Python库对比
 
 | 功能 | Go-CNN | PyTorch/NumPy |
 |------|--------|---------------|

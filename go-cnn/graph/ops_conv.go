@@ -335,14 +335,14 @@ func (op *ConvOp) Name() string {
 	return fmt.Sprintf("Conv2d(%dx%d/%d/%d, %d->%d)", op.KernelSize, op.KernelSize, op.Stride, op.Padding, op.InChannels, op.OutChannels)
 }
 
-// GetWeights 获取权重副本
+// GetWeights 获取权重引用
 func (op *ConvOp) GetWeights() *matrix.Matrix {
-	return op.weights.Copy()
+	return op.weights
 }
 
-// GetBiases 获取偏置副本
+// GetBiases 获取偏置引用
 func (op *ConvOp) GetBiases() *matrix.Matrix {
-	return op.biases.Copy()
+	return op.biases
 }
 
 // GetWeightGradients 获取权重梯度副本
