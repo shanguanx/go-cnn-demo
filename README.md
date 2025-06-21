@@ -73,14 +73,14 @@ cd go-cnn-demo
 
 ```bash
 cd go-cnn
-go run main.go train.go
+go run main.go train
 ```
 
 ### 3. 推理预测
 
 ```bash
 cd go-cnn
-go run main.go inference.go
+go run main.go inference
 ```
 
 ### 4. 编译可执行文件
@@ -155,27 +155,6 @@ python convolution_backward_verify.py
 └── 输出层: 10个神经元 + Softmax
 ```
 
-### 训练参数
-- **优化器**: Adam
-- **损失函数**: 交叉熵
-- **批次大小**: 128
-- **训练轮数**: 20 (带早停)
-- **验证集比例**: 20%
-
-## 🛠️ 技术特点
-
-### Go语言优势
-- **高性能**: 编译型语言，执行效率高
-- **并发支持**: 原生Goroutine和Channel支持
-- **内存安全**: 垃圾回收和类型安全
-- **跨平台**: 一次编译，多平台运行
-- **标准库丰富**: 强大的标准库支持
-
-### 架构设计
-- **接口驱动**: 使用Go接口实现模块解耦
-- **组合优于继承**: 采用组合模式设计网络层
-- **错误处理**: 完善的错误处理机制
-- **测试覆盖**: 全面的单元测试
 
 ## 📚 文档
 
@@ -203,77 +182,3 @@ python convolution_backward_verify.py
 3. 与PyTorch/TensorFlow对比验证
 4. 性能基准测试
 
-### 性能优化
-1. 使用Go的并发特性优化计算
-2. 内存池管理减少GC压力
-3. SIMD指令优化矩阵运算
-4. 缓存友好的数据布局
-
-## 🚀 使用示例
-
-### 基本使用
-
-```go
-package main
-
-import (
-    "fmt"
-    "log"
-    
-    "github.com/your-repo/go-cnn/models"
-    "github.com/your-repo/go-cnn/layers"
-    "github.com/your-repo/go-cnn/activations"
-)
-
-func main() {
-    // 创建模型
-    model := models.NewSequential()
-    
-    // 添加层
-    model.AddLayer(layers.NewConv2D(32, 3, 3, activations.ReLU))
-    model.AddLayer(layers.NewMaxPooling2D(2, 2))
-    model.AddLayer(layers.NewDense(128, activations.ReLU))
-    model.AddLayer(layers.NewDense(10, activations.Softmax))
-    
-    // 训练模型
-    err := model.Train(X_train, y_train, epochs=20)
-    if err != nil {
-        log.Fatal(err)
-    }
-    
-    // 预测
-    predictions := model.Predict(X_test)
-    fmt.Println("预测完成")
-}
-```
-
-## 🤝 贡献
-
-欢迎提交Issue和Pull Request！
-
-### 贡献指南
-1. Fork项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开Pull Request
-
-### 开发规范
-- 遵循Go语言编码规范
-- 添加适当的注释和文档
-- 编写单元测试
-- 确保所有测试通过
-
-## 📄 许可证
-
-MIT License
-
-## 🙏 致谢
-
-- MNIST数据集提供者
-- Go语言开发团队
-- 深度学习社区
-
----
-
-**注意**: 这是一个教育性质的项目，展示了如何使用纯Go语言实现深度学习算法。虽然功能完整，但在生产环境中建议使用成熟的深度学习框架。 
