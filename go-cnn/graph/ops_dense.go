@@ -237,3 +237,33 @@ func (op *DenseOp) ZeroGradients() {
 		}
 	}
 }
+
+// SetWeights 设置权重（用于模型加载）
+func (op *DenseOp) SetWeights(weights *matrix.Matrix) error {
+	if weights == nil {
+		return fmt.Errorf("weights cannot be nil")
+	}
+
+	if weights.Rows != op.InputFeatures || weights.Cols != op.OutputFeatures {
+		return fmt.Errorf("weight matrix shape mismatch: expected [%d, %d], got [%d, %d]",
+			op.InputFeatures, op.OutputFeatures, weights.Rows, weights.Cols)
+	}
+
+	op.weights = weights.Copy()
+	return nil
+}
+
+// SetBiases 设置偏置（用于模型加载）
+func (op *DenseOp) SetBiases(biases *matrix.Matrix) error {
+	if biases == nil {
+		return fmt.Errorf("biases cannot be nil")
+	}
+
+	if biases.Rows != 1 || biases.Cols != op.OutputFeatures {
+		return fmt.Errorf("bias matrix shape mismatch: expected [1, %d], got [%d, %d]",
+			op.OutputFeatures, biases.Rows, biases.Cols)
+	}
+
+	op.biases = biases.Copy()
+	return nil
+}

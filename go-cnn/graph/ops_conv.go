@@ -375,3 +375,36 @@ func (op *ConvOp) ZeroGradients() {
 		}
 	}
 }
+
+// SetWeights 设置权重（用于模型加载）
+func (op *ConvOp) SetWeights(weights *matrix.Matrix) error {
+	if weights == nil {
+		return fmt.Errorf("weights cannot be nil")
+	}
+
+	expectedRows := op.OutChannels
+	expectedCols := op.InChannels * op.KernelSize * op.KernelSize
+
+	if weights.Rows != expectedRows || weights.Cols != expectedCols {
+		return fmt.Errorf("weight matrix shape mismatch: expected [%d, %d], got [%d, %d]",
+			expectedRows, expectedCols, weights.Rows, weights.Cols)
+	}
+
+	op.weights = weights.Copy()
+	return nil
+}
+
+// SetBiases 设置偏置（用于模型加载）
+func (op *ConvOp) SetBiases(biases *matrix.Matrix) error {
+	if biases == nil {
+		return fmt.Errorf("biases cannot be nil")
+	}
+
+	if biases.Rows != op.OutChannels || biases.Cols != 1 {
+		return fmt.Errorf("bias matrix shape mismatch: expected [%d, 1], got [%d, %d]",
+			op.OutChannels, biases.Rows, biases.Cols)
+	}
+
+	op.biases = biases.Copy()
+	return nil
+}
